@@ -13,11 +13,11 @@ import {
     selectDate,
 } from "./actions";
 import {
-    setCurrentView,
     setPlannerViewMode,
     setSelectedMonthIndex,
 } from "./state";
 
+// Beschreibt die Funktionen, die von außen an die Event-Handler übergeben werden.
 interface AttachEventHandlersOptions {
     onRender: () => void;
     onSave: () => Promise<void>;
@@ -25,47 +25,17 @@ interface AttachEventHandlersOptions {
     onLoad: () => Promise<void>;
 }
 
+// Verknüpft alle interaktiven Elemente der Oberfläche mit ihrer Logik.
 export function attachEventHandlers({
                                         onRender,
                                         onSave,
                                         onSaveAs,
                                         onLoad,
                                     }: AttachEventHandlersOptions): void {
-    const createPlannerButton = document.querySelector<HTMLButtonElement>("#create-planner-button");
-    const loadPlannerButton = document.querySelector<HTMLButtonElement>("#load-planner-button");
-    const backHomeButton = document.querySelector<HTMLButtonElement>("#back-home-button");
     const openTeamModalButton = document.querySelector<HTMLButtonElement>("#open-team-modal-button");
     const openCategoriesModalButton = document.querySelector<HTMLButtonElement>("#open-categories-modal-button");
 
-    if (createPlannerButton) {
-        createPlannerButton.addEventListener("click", () => {
-            setCurrentView("planner");
-            onRender();
-        });
-    }
-
-    if (loadPlannerButton) {
-        loadPlannerButton.addEventListener("click", async () => {
-            try {
-                await onLoad();
-                setCurrentView("planner");
-                onRender();
-            } catch (error) {
-                console.error("Fehler beim Laden:", error);
-                alert(`Die Datei konnte nicht geladen werden: ${String(error)}`);
-            }
-        });
-    }
-
-    if (backHomeButton) {
-        backHomeButton.addEventListener("click", () => {
-            closeSelectedDayModal();
-            closeSelectedManagementModal();
-            setCurrentView("home");
-            onRender();
-        });
-    }
-
+    // Öffnet das Team-Verwaltungsmodal.
     if (openTeamModalButton) {
         openTeamModalButton.addEventListener("click", () => {
             openTeamManagementModal();
@@ -73,6 +43,7 @@ export function attachEventHandlers({
         });
     }
 
+    // Öffnet das Kategorien-Verwaltungsmodal.
     if (openCategoriesModalButton) {
         openCategoriesModalButton.addEventListener("click", () => {
             openCategoryManagementModal();
@@ -82,6 +53,7 @@ export function attachEventHandlers({
 
     const yearSelect = document.querySelector<HTMLSelectElement>("#year-select");
 
+    // Reagiert auf die Änderung des ausgewählten Jahres.
     if (yearSelect) {
         yearSelect.addEventListener("change", (event) => {
             const target = event.target as HTMLSelectElement;
@@ -93,6 +65,7 @@ export function attachEventHandlers({
     const plannerViewModeSelect =
         document.querySelector<HTMLSelectElement>("#planner-view-mode");
 
+    // Wechselt zwischen Jahres- und Monatsansicht.
     if (plannerViewModeSelect) {
         plannerViewModeSelect.addEventListener("change", (event) => {
             const target = event.target as HTMLSelectElement;
@@ -103,6 +76,7 @@ export function attachEventHandlers({
 
     const monthSelect = document.querySelector<HTMLSelectElement>("#month-select");
 
+    // Ändert den aktuell ausgewählten Monat in der Monatsansicht.
     if (monthSelect) {
         monthSelect.addEventListener("change", (event) => {
             const target = event.target as HTMLSelectElement;
@@ -113,6 +87,7 @@ export function attachEventHandlers({
 
     const dayButtons = document.querySelectorAll<HTMLButtonElement>(".calendar-day[data-date]");
 
+    // Öffnet beim Klick auf einen Tag das Tages-Modal.
     dayButtons.forEach((button) => {
         button.addEventListener("click", () => {
             selectDate(button.dataset.date ?? null);
@@ -124,6 +99,7 @@ export function attachEventHandlers({
         document.querySelector<HTMLButtonElement>("#close-day-modal-button");
     const dayModalOverlay = document.querySelector<HTMLDivElement>("#day-modal-overlay");
 
+    // Schließt das Tages-Modal per Schließen-Button.
     if (closeDayModalButton) {
         closeDayModalButton.addEventListener("click", () => {
             closeSelectedDayModal();
@@ -131,6 +107,7 @@ export function attachEventHandlers({
         });
     }
 
+    // Schließt das Tages-Modal per Klick auf den Hintergrund.
     if (dayModalOverlay) {
         dayModalOverlay.addEventListener("click", (event) => {
             if (event.target === dayModalOverlay) {
@@ -145,6 +122,7 @@ export function attachEventHandlers({
     const managementModalOverlay =
         document.querySelector<HTMLDivElement>("#management-modal-overlay");
 
+    // Schließt das Verwaltungs-Modal per Schließen-Button.
     if (closeManagementModalButton) {
         closeManagementModalButton.addEventListener("click", () => {
             closeSelectedManagementModal();
@@ -152,6 +130,7 @@ export function attachEventHandlers({
         });
     }
 
+    // Schließt das Verwaltungs-Modal per Klick auf den Hintergrund.
     if (managementModalOverlay) {
         managementModalOverlay.addEventListener("click", (event) => {
             if (event.target === managementModalOverlay) {
@@ -161,6 +140,7 @@ export function attachEventHandlers({
         });
     }
 
+    // Schließt offene Modals mit der Escape-Taste.
     document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
             closeSelectedDayModal();
@@ -171,6 +151,7 @@ export function attachEventHandlers({
 
     const entryForm = document.querySelector<HTMLFormElement>("#entry-form");
 
+    // Fügt einen neuen Planungseintrag über das Tages-Modal hinzu.
     if (entryForm) {
         entryForm.addEventListener("submit", (event) => {
             event.preventDefault();
@@ -179,6 +160,7 @@ export function attachEventHandlers({
                 .querySelector<HTMLButtonElement>(".calendar-day--selected")
                 ?.dataset.date;
 
+            // Abbrechen, falls kein Tag ausgewählt wurde.
             if (!selectedDateIso) {
                 return;
             }
@@ -201,6 +183,7 @@ export function attachEventHandlers({
 
     const personForm = document.querySelector<HTMLFormElement>("#person-form");
 
+    // Fügt im Verwaltungs-Modal eine neue Person hinzu.
     if (personForm) {
         personForm.addEventListener("submit", (event) => {
             event.preventDefault();
@@ -216,6 +199,7 @@ export function attachEventHandlers({
 
     const categoryForm = document.querySelector<HTMLFormElement>("#category-form");
 
+    // Fügt im Verwaltungs-Modal eine neue Kategorie hinzu.
     if (categoryForm) {
         categoryForm.addEventListener("submit", (event) => {
             event.preventDefault();
@@ -230,6 +214,7 @@ export function attachEventHandlers({
 
     const deleteEntryButtons = document.querySelectorAll<HTMLButtonElement>("[data-entry-id]");
 
+    // Löscht Planungseinträge.
     deleteEntryButtons.forEach((button) => {
         button.addEventListener("click", () => {
             const entryId = button.dataset.entryId;
@@ -245,6 +230,7 @@ export function attachEventHandlers({
 
     const deletePersonButtons = document.querySelectorAll<HTMLButtonElement>("[data-person-id]");
 
+    // Löscht Personen.
     deletePersonButtons.forEach((button) => {
         button.addEventListener("click", () => {
             const personId = button.dataset.personId;
@@ -260,6 +246,7 @@ export function attachEventHandlers({
 
     const deleteCategoryButtons = document.querySelectorAll<HTMLButtonElement>("[data-category-id]");
 
+    // Löscht Kategorien.
     deleteCategoryButtons.forEach((button) => {
         button.addEventListener("click", () => {
             const categoryId = button.dataset.categoryId;
@@ -277,6 +264,7 @@ export function attachEventHandlers({
     const saveAsButton = document.querySelector<HTMLButtonElement>("#save-as-button");
     const loadButton = document.querySelector<HTMLButtonElement>("#load-button");
 
+    // Speichert die aktuelle Planung.
     if (saveButton) {
         saveButton.addEventListener("click", async () => {
             try {
@@ -288,6 +276,7 @@ export function attachEventHandlers({
         });
     }
 
+    // Öffnet "Speichern unter" für die aktuelle Planung.
     if (saveAsButton) {
         saveAsButton.addEventListener("click", async () => {
             try {
@@ -299,6 +288,7 @@ export function attachEventHandlers({
         });
     }
 
+    // Lädt eine gespeicherte Planung.
     if (loadButton) {
         loadButton.addEventListener("click", async () => {
             try {

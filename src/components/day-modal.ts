@@ -102,13 +102,13 @@ export function renderDayModal({
     <div class="modal-overlay" id="day-modal-overlay">
       <div class="day-modal" role="dialog" aria-modal="true" aria-labelledby="day-modal-title">
         <div class="day-modal__header">
-          <div>
+          <div class="day-modal__heading">
             <h2 id="day-modal-title">Tagesdetails</h2>
             <p class="day-modal__subtitle">${formatSelectedDate(selectedDay)}</p>
           </div>
 
           <button
-            class="secondary-button day-modal__close"
+            class="day-modal__close"
             id="close-day-modal-button"
             type="button"
             aria-label="Modal schließen"
@@ -117,30 +117,38 @@ export function renderDayModal({
           </button>
         </div>
 
-        <div class="details-list">
-          <div class="details-item">
-            <span class="details-item__label">Wochentag</span>
-            <span class="details-item__value">${selectedDay.weekday}</span>
-          </div>
+        <div class="day-modal__section">
+          <div class="details-grid">
+            <div class="detail-card">
+              <span class="detail-card__label">Wochentag</span>
+              <span class="detail-card__value">${selectedDay.weekday}</span>
+            </div>
 
-          <div class="details-item">
-            <span class="details-item__label">Feiertag</span>
-            <span class="details-item__value">${selectedDay.holidayName ?? "—"}</span>
-          </div>
+            <div class="detail-card">
+              <span class="detail-card__label">Feiertag</span>
+              <span class="detail-card__value">${selectedDay.holidayName ?? "—"}</span>
+            </div>
 
-          <div class="details-item">
-            <span class="details-item__label">Wochenende</span>
-            <span class="details-item__value">${selectedDay.isWeekend ? "Ja" : "Nein"}</span>
+            <div class="detail-card">
+              <span class="detail-card__label">Wochenende</span>
+              <span class="detail-card__value">${selectedDay.isWeekend ? "Ja" : "Nein"}</span>
+            </div>
           </div>
         </div>
 
-        <div class="entry-editor">
+        <div class="day-modal__section entry-editor">
           <h3>Eintrag hinzufügen</h3>
 
           <form id="entry-form" class="entry-form">
             <div class="form-group">
               <label for="entry-title">Titel</label>
-              <input id="entry-title" name="title" type="text" placeholder="z. B. Urlaub Anna" required />
+              <input
+                id="entry-title"
+                name="title"
+                type="text"
+                placeholder="z. B. Urlaub Anna"
+                required
+              />
             </div>
 
             <div class="form-group">
@@ -157,13 +165,13 @@ export function renderDayModal({
               </select>
             </div>
 
-            <button class="primary-button" type="submit" ${submitDisabled}>
+            <button class="primary-button day-modal__submit" type="submit" ${submitDisabled}>
               Eintrag hinzufügen
             </button>
           </form>
         </div>
 
-        <div class="entry-section">
+        <div class="day-modal__section entry-section">
           <h3>Einträge</h3>
           ${renderEntriesList(entries, persons, categories)}
         </div>

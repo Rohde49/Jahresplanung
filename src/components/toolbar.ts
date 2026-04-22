@@ -34,12 +34,6 @@ export function renderToolbar({
 
     return `
     <div class="toolbar toolbar--planner">
-      <div class="toolbar__left">
-        <button class="secondary-button" id="back-home-button" type="button">
-          ← Home
-        </button>
-      </div>
-
       <div class="toolbar__center">
         <div class="toolbar__group">
           <label class="toolbar__label" for="year-select">Jahr</label>
@@ -69,9 +63,9 @@ export function renderToolbar({
           <summary class="secondary-button toolbar-menu__summary">Aktionen ▾</summary>
 
           <div class="toolbar-menu__content">
-            <button class="toolbar-menu__item" id="load-button" type="button">Laden</button>
+            <button class="toolbar-menu__item" id="load-button" type="button">Datei öffnen</button>
             <button class="toolbar-menu__item" id="save-as-button" type="button">Speichern unter</button>
-            <button class="toolbar-menu__item" id="save-button" type="button">Speichern</button>
+            <button class="toolbar-menu__item" id="save-button" type="button">Datei speichern</button>
             <button class="toolbar-menu__item" id="open-team-modal-button" type="button">Team verwalten</button>
             <button class="toolbar-menu__item" id="open-categories-modal-button" type="button">Kategorien verwalten</button>
           </div>
