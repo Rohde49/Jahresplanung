@@ -3,11 +3,12 @@ import type { Category } from "../models/category";
 import type { Person } from "../models/person";
 import type { PlanningEntry } from "../models/planning-entry";
 
-interface RenderDetailsPanelOptions {
+interface RenderDayModalOptions {
     selectedDay: CalendarDay | null;
     persons: Person[];
     categories: Category[];
     entries: PlanningEntry[];
+    isOpen: boolean;
 }
 
 function formatSelectedDate(day: CalendarDay): string {
@@ -82,19 +83,15 @@ function renderEntriesList(
     return `<ul class="entry-list">${itemsHtml}</ul>`;
 }
 
-export function renderDetailsPanel({
-                                       selectedDay,
-                                       persons,
-                                       categories,
-                                       entries,
-                                   }: RenderDetailsPanelOptions): string {
-    if (!selectedDay) {
-        return `
-      <aside class="details-panel card">
-        <h2>Tagesdetails</h2>
-        <p>Wähle einen Tag im Kalender aus, um Details anzuzeigen.</p>
-      </aside>
-    `;
+export function renderDayModal({
+                                   selectedDay,
+                                   persons,
+                                   categories,
+                                   entries,
+                                   isOpen,
+                               }: RenderDayModalOptions): string {
+    if (!isOpen || !selectedDay) {
+        return "";
     }
 
     const personSelectDisabled = persons.length === 0 ? "disabled" : "";
@@ -102,64 +99,75 @@ export function renderDetailsPanel({
     const submitDisabled = persons.length === 0 || categories.length === 0 ? "disabled" : "";
 
     return `
-    <aside class="details-panel card">
-      <h2>Tagesdetails</h2>
-
-      <div class="details-list">
-        <div class="details-item">
-          <span class="details-item__label">Datum</span>
-          <span class="details-item__value">${formatSelectedDate(selectedDay)}</span>
-        </div>
-
-        <div class="details-item">
-          <span class="details-item__label">Wochentag</span>
-          <span class="details-item__value">${selectedDay.weekday}</span>
-        </div>
-
-        <div class="details-item">
-          <span class="details-item__label">Feiertag</span>
-          <span class="details-item__value">${selectedDay.holidayName ?? "—"}</span>
-        </div>
-
-        <div class="details-item">
-          <span class="details-item__label">Wochenende</span>
-          <span class="details-item__value">${selectedDay.isWeekend ? "Ja" : "Nein"}</span>
-        </div>
-      </div>
-
-      <div class="entry-editor">
-        <h3>Eintrag hinzufügen</h3>
-
-        <form id="entry-form" class="entry-form">
-          <div class="form-group">
-            <label for="entry-title">Titel</label>
-            <input id="entry-title" name="title" type="text" placeholder="z. B. Urlaub Anna" required />
+    <div class="modal-overlay" id="day-modal-overlay">
+      <div class="day-modal" role="dialog" aria-modal="true" aria-labelledby="day-modal-title">
+        <div class="day-modal__header">
+          <div>
+            <h2 id="day-modal-title">Tagesdetails</h2>
+            <p class="day-modal__subtitle">${formatSelectedDate(selectedDay)}</p>
           </div>
 
-          <div class="form-group">
-            <label for="entry-category">Kategorie</label>
-            <select id="entry-category" name="categoryId" ${categorySelectDisabled}>
-              ${renderCategoryOptions(categories)}
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="entry-person">Person</label>
-            <select id="entry-person" name="personId" ${personSelectDisabled}>
-              ${renderPersonOptions(persons)}
-            </select>
-          </div>
-
-          <button class="primary-button" type="submit" ${submitDisabled}>
-            Eintrag hinzufügen
+          <button
+            class="secondary-button day-modal__close"
+            id="close-day-modal-button"
+            type="button"
+            aria-label="Modal schließen"
+          >
+            ✕
           </button>
-        </form>
-      </div>
+        </div>
 
-      <div class="entry-section">
-        <h3>Einträge</h3>
-        ${renderEntriesList(entries, persons, categories)}
+        <div class="details-list">
+          <div class="details-item">
+            <span class="details-item__label">Wochentag</span>
+            <span class="details-item__value">${selectedDay.weekday}</span>
+          </div>
+
+          <div class="details-item">
+            <span class="details-item__label">Feiertag</span>
+            <span class="details-item__value">${selectedDay.holidayName ?? "—"}</span>
+          </div>
+
+          <div class="details-item">
+            <span class="details-item__label">Wochenende</span>
+            <span class="details-item__value">${selectedDay.isWeekend ? "Ja" : "Nein"}</span>
+          </div>
+        </div>
+
+        <div class="entry-editor">
+          <h3>Eintrag hinzufügen</h3>
+
+          <form id="entry-form" class="entry-form">
+            <div class="form-group">
+              <label for="entry-title">Titel</label>
+              <input id="entry-title" name="title" type="text" placeholder="z. B. Urlaub Anna" required />
+            </div>
+
+            <div class="form-group">
+              <label for="entry-category">Kategorie</label>
+              <select id="entry-category" name="categoryId" ${categorySelectDisabled}>
+                ${renderCategoryOptions(categories)}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="entry-person">Person</label>
+              <select id="entry-person" name="personId" ${personSelectDisabled}>
+                ${renderPersonOptions(persons)}
+              </select>
+            </div>
+
+            <button class="primary-button" type="submit" ${submitDisabled}>
+              Eintrag hinzufügen
+            </button>
+          </form>
+        </div>
+
+        <div class="entry-section">
+          <h3>Einträge</h3>
+          ${renderEntriesList(entries, persons, categories)}
+        </div>
       </div>
-    </aside>
+    </div>
   `;
 }

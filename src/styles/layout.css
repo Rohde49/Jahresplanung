@@ -1,0 +1,60 @@
+.app-shell {
+    min-height: 100vh;
+    padding: 32px;
+}
+
+.app-header {
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.app-header h1 {
+    font-size: 2rem;
+    line-height: 1.2;
+    margin-bottom: 8px;
+    color: #111827;
+}
+
+.app-subtitle {
+    color: #6b7280;
+    font-size: 1rem;
+}
+
+.app-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.section-header {
+    margin-bottom: 20px;
+}
+
+.section-header h2 {
+    margin-bottom: 6px;
+    font-size: 1.3rem;
+    color: #111827;
+}
+
+.section-header p {
+    color: #6b7280;
+}
+
+.section-header--planner {
+    margin-bottom: 12px;
+}
+
+.section-header--planner h2 {
+    margin-bottom: 0;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .app-shell {
+        padding: 20px;
+    }
+
+    .app-header h1 {
+        font-size: 1.6rem;
+    }
+}

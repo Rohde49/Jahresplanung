@@ -1,12 +1,22 @@
-import type { EntryCategory } from "../models/planning-entry";
 import {
+    addCategory,
     addPerson,
     addPlanningEntry,
     changeSelectedYear,
+    closeSelectedDayModal,
+    closeSelectedManagementModal,
+    deleteCategory,
     deletePerson,
     deletePlanningEntry,
+    openCategoryManagementModal,
+    openTeamManagementModal,
     selectDate,
 } from "./actions";
+import {
+    setCurrentView,
+    setPlannerViewMode,
+    setSelectedMonthIndex,
+} from "./state";
 
 interface AttachEventHandlersOptions {
     onRender: () => void;
@@ -21,12 +31,82 @@ export function attachEventHandlers({
                                         onSaveAs,
                                         onLoad,
                                     }: AttachEventHandlersOptions): void {
+    const createPlannerButton = document.querySelector<HTMLButtonElement>("#create-planner-button");
+    const loadPlannerButton = document.querySelector<HTMLButtonElement>("#load-planner-button");
+    const backHomeButton = document.querySelector<HTMLButtonElement>("#back-home-button");
+    const openTeamModalButton = document.querySelector<HTMLButtonElement>("#open-team-modal-button");
+    const openCategoriesModalButton = document.querySelector<HTMLButtonElement>("#open-categories-modal-button");
+
+    if (createPlannerButton) {
+        createPlannerButton.addEventListener("click", () => {
+            setCurrentView("planner");
+            onRender();
+        });
+    }
+
+    if (loadPlannerButton) {
+        loadPlannerButton.addEventListener("click", async () => {
+            try {
+                await onLoad();
+                setCurrentView("planner");
+                onRender();
+            } catch (error) {
+                console.error("Fehler beim Laden:", error);
+                alert(`Die Datei konnte nicht geladen werden: ${String(error)}`);
+            }
+        });
+    }
+
+    if (backHomeButton) {
+        backHomeButton.addEventListener("click", () => {
+            closeSelectedDayModal();
+            closeSelectedManagementModal();
+            setCurrentView("home");
+            onRender();
+        });
+    }
+
+    if (openTeamModalButton) {
+        openTeamModalButton.addEventListener("click", () => {
+            openTeamManagementModal();
+            onRender();
+        });
+    }
+
+    if (openCategoriesModalButton) {
+        openCategoriesModalButton.addEventListener("click", () => {
+            openCategoryManagementModal();
+            onRender();
+        });
+    }
+
     const yearSelect = document.querySelector<HTMLSelectElement>("#year-select");
 
     if (yearSelect) {
         yearSelect.addEventListener("change", (event) => {
             const target = event.target as HTMLSelectElement;
             changeSelectedYear(Number(target.value));
+            onRender();
+        });
+    }
+
+    const plannerViewModeSelect =
+        document.querySelector<HTMLSelectElement>("#planner-view-mode");
+
+    if (plannerViewModeSelect) {
+        plannerViewModeSelect.addEventListener("change", (event) => {
+            const target = event.target as HTMLSelectElement;
+            setPlannerViewMode(target.value as "year" | "month");
+            onRender();
+        });
+    }
+
+    const monthSelect = document.querySelector<HTMLSelectElement>("#month-select");
+
+    if (monthSelect) {
+        monthSelect.addEventListener("change", (event) => {
+            const target = event.target as HTMLSelectElement;
+            setSelectedMonthIndex(Number(target.value));
             onRender();
         });
     }
@@ -38,6 +118,55 @@ export function attachEventHandlers({
             selectDate(button.dataset.date ?? null);
             onRender();
         });
+    });
+
+    const closeDayModalButton =
+        document.querySelector<HTMLButtonElement>("#close-day-modal-button");
+    const dayModalOverlay = document.querySelector<HTMLDivElement>("#day-modal-overlay");
+
+    if (closeDayModalButton) {
+        closeDayModalButton.addEventListener("click", () => {
+            closeSelectedDayModal();
+            onRender();
+        });
+    }
+
+    if (dayModalOverlay) {
+        dayModalOverlay.addEventListener("click", (event) => {
+            if (event.target === dayModalOverlay) {
+                closeSelectedDayModal();
+                onRender();
+            }
+        });
+    }
+
+    const closeManagementModalButton =
+        document.querySelector<HTMLButtonElement>("#close-management-modal-button");
+    const managementModalOverlay =
+        document.querySelector<HTMLDivElement>("#management-modal-overlay");
+
+    if (closeManagementModalButton) {
+        closeManagementModalButton.addEventListener("click", () => {
+            closeSelectedManagementModal();
+            onRender();
+        });
+    }
+
+    if (managementModalOverlay) {
+        managementModalOverlay.addEventListener("click", (event) => {
+            if (event.target === managementModalOverlay) {
+                closeSelectedManagementModal();
+                onRender();
+            }
+        });
+    }
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            closeSelectedDayModal();
+            closeSelectedManagementModal();
+            onRender();
+        }
     });
 
     const entryForm = document.querySelector<HTMLFormElement>("#entry-form");
@@ -56,13 +185,13 @@ export function attachEventHandlers({
 
             const formData = new FormData(entryForm);
             const title = String(formData.get("title") ?? "");
-            const category = String(formData.get("category") ?? "Sonstiges") as EntryCategory;
+            const categoryId = String(formData.get("categoryId") ?? "");
             const personId = String(formData.get("personId") ?? "");
 
             addPlanningEntry({
                 dateIso: selectedDateIso,
                 title,
-                category,
+                categoryId,
                 personId,
             });
 
@@ -81,6 +210,20 @@ export function attachEventHandlers({
             const color = String(formData.get("color") ?? "#4f46e5");
 
             addPerson({ name, color });
+            onRender();
+        });
+    }
+
+    const categoryForm = document.querySelector<HTMLFormElement>("#category-form");
+
+    if (categoryForm) {
+        categoryForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(categoryForm);
+            const name = String(formData.get("name") ?? "");
+
+            addCategory({ name });
             onRender();
         });
     }
@@ -111,6 +254,21 @@ export function attachEventHandlers({
             }
 
             deletePerson(personId);
+            onRender();
+        });
+    });
+
+    const deleteCategoryButtons = document.querySelectorAll<HTMLButtonElement>("[data-category-id]");
+
+    deleteCategoryButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            const categoryId = button.dataset.categoryId;
+
+            if (!categoryId) {
+                return;
+            }
+
+            deleteCategory(categoryId);
             onRender();
         });
     });

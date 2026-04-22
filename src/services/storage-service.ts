@@ -1,6 +1,7 @@
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import type { AppStorageData } from "../models/app-storage";
+import type { Category } from "../models/category";
 import type { Person } from "../models/person";
 import type { PlanningEntry } from "../models/planning-entry";
 
@@ -18,6 +19,16 @@ function isPerson(value: unknown): value is Person {
     );
 }
 
+function isCategory(value: unknown): value is Category {
+    if (typeof value !== "object" || value === null) {
+        return false;
+    }
+
+    const category = value as Record<string, unknown>;
+
+    return typeof category.id === "string" && typeof category.name === "string";
+}
+
 function isPlanningEntry(value: unknown): value is PlanningEntry {
     if (typeof value !== "object" || value === null) {
         return false;
@@ -29,7 +40,7 @@ function isPlanningEntry(value: unknown): value is PlanningEntry {
         typeof entry.id === "string" &&
         typeof entry.dateIso === "string" &&
         typeof entry.title === "string" &&
-        typeof entry.category === "string" &&
+        typeof entry.categoryId === "string" &&
         typeof entry.personId === "string"
     );
 }
@@ -45,6 +56,8 @@ function isAppStorageData(value: unknown): value is AppStorageData {
         typeof data.selectedYear === "number" &&
         Array.isArray(data.persons) &&
         data.persons.every(isPerson) &&
+        Array.isArray(data.categories) &&
+        data.categories.every(isCategory) &&
         Array.isArray(data.planningEntries) &&
         data.planningEntries.every(isPlanningEntry)
     );

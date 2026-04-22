@@ -1,0 +1,124 @@
+.toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}
+
+.toolbar__left {
+    display: flex;
+    align-items: end;
+}
+
+.toolbar__center {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.toolbar__right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: end;
+}
+
+.toolbar__group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 140px;
+}
+
+.toolbar__group--month {
+    min-width: 180px;
+}
+
+.toolbar__label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.toolbar__select {
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    background-color: #ffffff;
+    color: #111827;
+    padding: 10px 12px;
+}
+
+.toolbar__select:focus {
+    outline: 2px solid #c7d2fe;
+    outline-offset: 1px;
+}
+
+.toolbar__select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.toolbar--planner {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: end;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.toolbar-menu {
+    position: relative;
+}
+
+.toolbar-menu__summary {
+    list-style: none;
+}
+
+.toolbar-menu__summary::-webkit-details-marker {
+    display: none;
+}
+
+.toolbar-menu__content {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    z-index: 20;
+    min-width: 220px;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.toolbar-menu__item {
+    border: none;
+    background-color: #ffffff;
+    color: #111827;
+    text-align: left;
+    padding: 10px 12px;
+    border-radius: 8px;
+    box-shadow: none;
+}
+
+.toolbar-menu__item:hover {
+    background-color: #f3f4f6;
+}
+
+@media (max-width: 1100px) {
+    .toolbar--planner {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+    }
+
+    .toolbar__left,
+    .toolbar__right {
+        justify-content: flex-start;
+    }
+
+    .toolbar__center {
+        justify-content: flex-start;
+    }
+}

@@ -1,12 +1,15 @@
-import { renderToolbar } from "../components/toolbar";
-import { renderMonthCard } from "../components/month-card";
-import { renderDetailsPanel } from "../components/details-panel";
+import { applyLoadedData } from "./actions";
+import { attachEventHandlers } from "./handlers";
+import {
+    categories,
+    currentView,
+    persons,
+    planningEntries,
+    selectedYear,
+    setCurrentFilePath,
+} from "./state";
 
-import { type CalendarDay, type CalendarMonth } from "../models/calendar";
 import type { AppStorageData } from "../models/app-storage";
-import { type PlanningEntry } from "../models/planning-entry";
-
-import { createCalendarYear } from "../utils/date-utils";
 
 import {
     chooseAndLoadPlanningFile,
@@ -14,42 +17,14 @@ import {
     writePlanningFile,
 } from "../services/storage-service";
 
-import {
-    AVAILABLE_YEARS,
-    currentFilePath,
-    persons,
-    planningEntries,
-    selectedDateIso,
-    selectedYear,
-    setCurrentFilePath,
-} from "./state";
-import { applyLoadedData } from "./actions";
-import { attachEventHandlers } from "./handlers";
-
-function findSelectedDay(months: CalendarMonth[], isoDate: string | null): CalendarDay | null {
-    if (!isoDate) {
-        return null;
-    }
-
-    for (const month of months) {
-        const foundDay = month.days.find((day) => day.isoDate === isoDate);
-
-        if (foundDay) {
-            return foundDay;
-        }
-    }
-
-    return null;
-}
-
-function getEntriesForDate(dateIso: string): PlanningEntry[] {
-    return planningEntries.filter((entry) => entry.dateIso === dateIso);
-}
+import { renderYearView } from "../components/year-view";
+import { renderHomeView } from "../components/home-view";
 
 function createStorageData(): AppStorageData {
     return {
         selectedYear,
         persons,
+        categories,
         planningEntries,
     };
 }
@@ -66,12 +41,7 @@ async function savePlanningDataAs(): Promise<void> {
 }
 
 async function savePlanningData(): Promise<void> {
-    if (!currentFilePath) {
-        await savePlanningDataAs();
-        return;
-    }
-
-    await writePlanningFile(currentFilePath, createStorageData());
+    await savePlanningDataAs();
 }
 
 async function loadPlanningData(): Promise<void> {
@@ -85,38 +55,20 @@ async function loadPlanningData(): Promise<void> {
     renderApp();
 }
 
+function renderCurrentView(): string {
+    if (currentView === "planner") {
+        return renderYearView();
+    }
+
+    return renderHomeView();
+}
+
 export function renderApp(): void {
     const app = document.querySelector<HTMLDivElement>("#app");
 
     if (!app) {
         throw new Error("App root element '#app' wurde nicht gefunden.");
     }
-
-    const calendarYear = createCalendarYear(selectedYear);
-    const selectedDay = findSelectedDay(calendarYear.months, selectedDateIso);
-
-    const monthCardsHtml = calendarYear.months
-        .map((month) =>
-            renderMonthCard({
-                month,
-                selectedDateIso,
-                planningEntries,
-                persons,
-            }),
-        )
-        .join("");
-
-    const detailsEntries = selectedDay ? getEntriesForDate(selectedDay.isoDate) : [];
-
-    const detailsPanelHtml = renderDetailsPanel({
-        selectedDay,
-        persons,
-        entries: detailsEntries,
-    });
-
-    const fileInfo = currentFilePath
-        ? `<p class="file-info">Aktuelle Datei: ${currentFilePath}</p>`
-        : `<p class="file-info">Noch keine Datei geladen oder gespeichert</p>`;
 
     app.innerHTML = `
     <div class="app-shell">
@@ -126,27 +78,7 @@ export function renderApp(): void {
       </header>
 
       <main class="app-content">
-        <section class="card">
-          ${renderToolbar({
-        availableYears: AVAILABLE_YEARS,
-        selectedYear,
-    })}
-
-          ${fileInfo}
-
-          <div class="section-header">
-            <h2>Jahresübersicht ${calendarYear.year}</h2>
-            <p>Kalender mit Feiertagen, Tagesauswahl, Personen und Planeinträgen</p>
-          </div>
-
-          <div class="layout-grid">
-            <div class="month-grid">
-              ${monthCardsHtml}
-            </div>
-
-            ${detailsPanelHtml}
-          </div>
-        </section>
+        ${renderCurrentView()}
       </main>
     </div>
   `;
