@@ -63,7 +63,8 @@ export function renderToolbar({
           <summary class="secondary-button toolbar-menu__summary">Aktionen ▾</summary>
 
           <div class="toolbar-menu__content">
-            <button class="toolbar-menu__item" id="load-button" type="button">Datei öffnen</button>
+            <button class="toolbar-menu__item" id="print-current-month-button" type="button">Monat drucken</button>
+            <button class="toolbar-menu__item" id="load-button" type="button">Datei Laden</button>
             <button class="toolbar-menu__item" id="save-as-button" type="button">Speichern unter</button>
             <button class="toolbar-menu__item" id="save-button" type="button">Datei speichern</button>
             <button class="toolbar-menu__item" id="open-team-modal-button" type="button">Team verwalten</button>

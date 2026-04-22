@@ -5,8 +5,11 @@ import {
     currentFilePath,
     persons,
     planningEntries,
+    printViewMode,
+    selectedMonthIndex,
     selectedYear,
     setCurrentFilePath,
+    setPrintViewMode,
 } from "./state";
 
 import type { AppStorageData } from "../models/app-storage";
@@ -18,8 +21,9 @@ import {
 } from "../services/storage-service";
 
 import { renderYearView } from "../components/year-view";
+import { renderPrintView } from "../components/print-view";
 
-// Erstellt das aktuelle Datenobjekt, das als JSON gespeichert wird.
+// Baut das aktuelle Speicherobjekt für JSON-Export/Import.
 function createStorageData(): AppStorageData {
     return {
         selectedYear,
@@ -29,11 +33,10 @@ function createStorageData(): AppStorageData {
     };
 }
 
-// Öffnet einen "Speichern unter"-Dialog und speichert die aktuellen Daten in die gewählte Datei.
+// "Speichern unter": Nutzer wählt Dateipfad, danach werden die Daten dorthin geschrieben.
 async function savePlanningDataAs(): Promise<void> {
     const filePath = await chooseSaveFilePath(selectedYear);
 
-    // Abbrechen, falls der Nutzer keinen Speicherort auswählt.
     if (!filePath) {
         return;
     }
@@ -42,8 +45,7 @@ async function savePlanningDataAs(): Promise<void> {
     setCurrentFilePath(filePath);
 }
 
-// Speichert direkt in die aktuell geöffnete Datei.
-// Falls noch keine Datei bekannt ist, wird automatisch "Speichern unter" verwendet.
+// Normales Speichern: nutzt vorhandenen Dateipfad, sonst automatisch "Speichern unter".
 async function savePlanningData(): Promise<void> {
     if (!currentFilePath) {
         await savePlanningDataAs();
@@ -53,12 +55,10 @@ async function savePlanningData(): Promise<void> {
     await writePlanningFile(currentFilePath, createStorageData());
 }
 
-// Öffnet einen Dateidialog, lädt die gespeicherten Planungsdaten
-// und übernimmt sie in den aktuellen App-Zustand.
+// Lädt eine gespeicherte Datei und übernimmt deren Daten in den aktuellen Zustand.
 async function loadPlanningData(): Promise<void> {
     const result = await chooseAndLoadPlanningFile();
 
-    // Abbrechen, falls keine Datei ausgewählt wurde.
     if (!result) {
         return;
     }
@@ -67,7 +67,21 @@ async function loadPlanningData(): Promise<void> {
     renderApp();
 }
 
-// Rendert die komplette Anwendung neu in das #app-Element.
+// Aktiviert kurz die Druckansicht und öffnet dann den Druckdialog.
+async function printCurrentMonth(): Promise<void> {
+    setPrintViewMode("month");
+    renderApp();
+
+    // Kleiner Tick, damit DOM/CSS sicher aktualisiert sind.
+    await new Promise((resolve) => window.setTimeout(resolve, 50));
+
+    window.print();
+
+    setPrintViewMode("none");
+    renderApp();
+}
+
+// Rendert die App entweder normal oder in der Druckansicht.
 export function renderApp(): void {
     const app = document.querySelector<HTMLDivElement>("#app");
 
@@ -75,24 +89,40 @@ export function renderApp(): void {
         throw new Error("App root element '#app' wurde nicht gefunden.");
     }
 
-    app.innerHTML = `
-    <div class="app-shell">
-      <header class="app-header">
-        <h1>Software-Jahresplanung</h1>
-        <p class="app-subtitle">Desktopanwendung zur Jahresplanung für Teams</p>
-      </header>
+    const mainContent =
+        printViewMode === "month"
+            ? renderPrintView({
+                year: selectedYear,
+                monthIndex: selectedMonthIndex,
+                planningEntries,
+                persons,
+                categories,
+            })
+            : `
+        <header class="app-header">
+          <h1>Software-Jahresplanung</h1>
+          <p class="app-subtitle">Desktopanwendung zur Jahresplanung für Teams</p>
+        </header>
 
-      <main class="app-content">
-        ${renderYearView()}
-      </main>
+        <main class="app-content">
+          ${renderYearView()}
+        </main>
+      `;
+
+    app.innerHTML = `
+    <div class="app-shell ${printViewMode !== "none" ? "app-shell--print" : ""}">
+      ${mainContent}
     </div>
   `;
 
-    // Bindet nach jedem Rendern alle benötigten Event-Listener erneut an.
-    attachEventHandlers({
-        onRender: renderApp,
-        onSave: savePlanningData,
-        onSaveAs: savePlanningDataAs,
-        onLoad: loadPlanningData,
-    });
+    // In der Druckansicht keine normalen Event-Handler binden.
+    if (printViewMode === "none") {
+        attachEventHandlers({
+            onRender: renderApp,
+            onSave: savePlanningData,
+            onSaveAs: savePlanningDataAs,
+            onLoad: loadPlanningData,
+            onPrintCurrentMonth: printCurrentMonth,
+        });
+    }
 }
